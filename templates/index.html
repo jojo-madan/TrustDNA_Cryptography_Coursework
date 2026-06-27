@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TrustDNA v2.0 — PKI Genomic Authentication</title>
+<style>
+:root{
+  --blue:#1a3a5c;--blue2:#2e6da4;--blue-l:#e8f0f8;
+  --teal:#0d7a6e;--teal2:#0fa898;--teal-l:#e5f4f2;
+  --amber:#b87a00;--amber-l:#fdf3dc;
+  --green:#1a7a3c;--green-l:#e8f5ed;
+  --red:#c0392b;--red-l:#fdedec;
+  --purple:#5b3e8c;--purple-l:#ede8f5;
+  --gray:#f5f6fa;--dgray:#444;--border:#dde2ea;
+  --shadow:0 2px 12px rgba(0,0,0,.07);--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f7;color:#333;min-height:100vh;}
+nav{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100;}
+.nav-brand{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.nav-badge{background:#fff;color:var(--blue);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;}
+.nav-right{display:flex;align-items:center;gap:14px;font-size:12px;}
+.sdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+.dot-g{background:#4caf50;box-shadow:0 0 5px #4caf50;}.dot-a{background:#ff9800;}
+.nbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;}
+.main{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:16px 0;}
+.sb-hd{padding:10px 18px 4px;font-size:10px;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase;}
+.sb-btn{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:13px;color:var(--dgray);transition:all .15s;}
+.sb-btn:hover{background:var(--gray);color:var(--blue);}
+.sb-btn.active{background:var(--blue-l);color:var(--blue);font-weight:600;border-right:3px solid var(--blue);}
+.content{padding:24px;overflow-y:auto;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px;}
+.ctitle{font-size:15px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.cico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.fg{margin-bottom:11px;}
+.lbl{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:4px;}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border .15s;}
+.fi:focus{border-color:var(--blue2);}
+textarea.fi{resize:vertical;min-height:72px;}
+.btn{width:100%;padding:11px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px;}
+.btn:hover{filter:brightness(1.08);}.btn:disabled{opacity:.6;cursor:default;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--blue);color:#fff;padding:8px 12px;text-align:left;font-weight:600;}
+td{padding:8px 12px;border-bottom:1px solid #f0f2f5;}
+tr:hover td{background:#f8f9fc;}
+.al{border-radius:9px;padding:10px 14px;font-size:12px;margin-top:8px;line-height:1.6;}
+.als{background:var(--green-l);color:var(--green);border:1px solid #c3e6cb;}
+.ale{background:var(--red-l);color:var(--red);border:1px solid #f5c6cb;}
+.ali{background:var(--blue-l);color:var(--blue2);border:1px solid #c3d9f0;}
+.alw{background:var(--amber-l);color:var(--amber);border:1px solid #f5dca6;}
+.log{background:#0d1117;color:#58d68d;font-family:monospace;font-size:11px;border-radius:8px;padding:12px;height:200px;overflow-y:auto;line-height:1.7;}
+.log .li{color:#666;}.log .lo{color:#58d68d;}.log .le{color:#e74c3c;}.log .lw{color:#f39c12;}
+.mono{font-family:monospace;font-size:10.5px;word-break:break-all;}
+.step-box{border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1.5px solid;}
+.sp{background:var(--green-l);border-color:#27ae6044;color:var(--green);}
+.sf{background:var(--red-l);border-color:#c0392b44;color:var(--red);}
+.sw{background:var(--amber-l);border-color:#d6891044;color:var(--amber);}
+.stech{background:#f8f9fa;border-radius:5px;padding:7px 9px;font-family:monospace;font-size:9.5px;color:#555;line-height:1.8;margin-top:6px;}
+.stats-bar{background:#fff;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;gap:36px;}
+.stat-v{font-size:24px;font-weight:700;color:var(--blue);}
+.stat-l{font-size:11px;color:#888;margin-top:2px;}
+.hero{background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:32px;border-radius:var(--radius);margin-bottom:18px;}
+.hero h1{font-size:26px;font-weight:700;margin-bottom:6px;}
+.hero p{font-size:13px;opacity:.85;max-width:500px;line-height:1.6;}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;display:inline-block;margin:3px 3px 0 0;}
+.att-link{color:var(--blue2);font-weight:600;font-size:12px;text-decoration:none;}
+.att-link:hover{text-decoration:underline;}
+@media(max-width:768px){.main{grid-template-columns:1fr;}.sidebar{display:none;}.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-brand">🧬 TrustDNA <span class="nav-badge">v2.0</span></div>
+  <div class="nav-right">
+    <span><span class="sdot dot-g" id="db-dot"></span><span id="db-st">Checking...</span></span>
+    <span><span class="sdot dot-a" id="ca-dot"></span><span id="ca-st">CA...</span></span>
+    <span id="nav-user" style="font-weight:600;"></span>
+    <button class="nbtn" id="logout-btn" style="display:none;" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="main">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-hd">Overview</div>
+  <button class="sb-btn active" id="sb-dash" onclick="go('dash')"><span>📊</span>Dashboard</button>
+
+  <div class="sb-hd">Administration</div>
+  <button class="sb-btn" id="sb-ca" onclick="go('ca')"><span>🏛️</span>CA Admin</button>
+
+  <div class="sb-hd">Clinical Staff</div>
+  <button class="sb-btn" id="sb-lab" onclick="go('lab')"><span>🔬</span>Lab Technician</button>
+  <button class="sb-btn" id="sb-doc" onclick="go('doc')"><span>👨‍⚕️</span>Doctor</button>
+  <button class="sb-btn" id="sb-ph" onclick="go('ph')"><span>💊</span>Pharmacist</button>
+
+  <div class="sb-hd">Security</div>
+  <button class="sb-btn" id="sb-atk" onclick="go('atk')"><span>🔴</span>Attack Simulator</button>
+  <button class="sb-btn" id="sb-aud" onclick="go('aud')"><span>📋</span>Audit Log</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="panel active" id="dash">
+  <div class="hero">
+    <h1>🧬 TrustDNA PKI System</h1>
+    <p>Hospital-grade cryptographic authentication for genomic reports and prescriptions. Full PKI chain of trust from CA to dispensing.</p>
+    <div style="margin-top:14px;">
+      <span class="badge">RSA-2048 Signing</span>
+      <span class="badge">ECC P-256 ECDH</span>
+      <span class="badge">AES-256-GCM</span>
+      <span class="badge">SHA-256</span>
+      <span class="badge">X.509 v3</span>
+      <span class="badge">PKCS#12</span>
+      <span class="badge">CRL Revocation</span>
+      <span class="badge">Nonce Replay Protection</span>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div><div class="stat-v" id="sv-users">—</div><div class="stat-l">Registered Users</div></div>
+    <div><div class="stat-v" id="sv-reports">—</div><div class="stat-l">Signed Reports</div></div>
+    <div><div class="stat-v" id="sv-rx">—</div><div class="stat-l">Prescriptions</div></div>
+    <div><div class="stat-v" id="sv-rev" style="color:var(--red)">—</div><div class="stat-l">Revoked Certs</div></div>
+  </div>
+  <div class="g2" style="margin-top:16px;">
+    <div class="card">
+      <div class="ctitle"><div class="cico" style="background:var(--blue-l);">🔗</div>Cryptographic Chain</div>
+      <div style="font-size:12px;line-height:2.2;">
+        <div>1. 🏛️ <b>CA Admin</b> → Setup CA → Register staff (RSA-2048 + ECC P-256 + PKCS#12)</div>
+        <div>2. 🔬 <b>Lab Tech</b> → Sign genomic report (SHA-256 + RSA-PKCS1v15 + Nonce)</div>
+        <div>3. 👨‍⚕️ <b>Doctor</b> → Verify report → Sign prescription (ECDH + AES-256-GCM + RSA)</div>
+        <div>4. 💊 <b>Pharmacist</b> → 6-step verification → Dispense medication</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><div class="cico" style="background:var(--green-l);">🛡️</div>Security Guarantees</div>
+      <div style="font-size:12px;line-height:2.2;">
+        <div>✅ <b>Authentication</b> — X.509 v3 + PKI challenge-response</div>
+        <div>✅ <b>Integrity</b> — SHA-256 hash sealed in RSA signature</div>
+        <div>✅ <b>Confidentiality</b> — AES-256-GCM AEAD encryption</div>
+        <div>✅ <b>Non-repudiation</b> — RSA digital signatures</div>
+        <div>✅ <b>Replay protection</b> — Nonce + timestamp per document</div>
+        <div>✅ <b>Revocation</b> — CRL checked on every operation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CA ADMIN -->
+<div class="panel" id="ca">
+  <div class="card">
+    <div class="ctitle"><div class="cico" style="background:var(--amber-l);">🏛️</div>CA Admin Login</div>
+    <div class="fg"><label class="lbl">CA Admin Password</label><input class="fi" id="ca-pass" type="password" placeholder="TrustDNA@2026"/></div>
+    <button class="btn" style="background:linear-gradient(135deg,#b87a00,#d4a000);color:#fff;" onclick="caLogin()">Login as CA Admin</button>
+    <div id="ca-login-res"></div>
+  </div>
+  <div id="ca-dash" style="display:none;">
+    <div class="g2">
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--amber-l);">⚙️</div>Initialise Certificate Authority</div>
+        <p style="font-size:12px;color:#666;margin-bottom:12px;">Generate RSA-2048 root key pair, X.509 v3 self-signed certificate, and PKCS#12 password-protected keystore.</p>
+        <button class="btn" style="background:linear-gradient(135deg,var(--amber),#d4a000);color:#fff;" onclick="caSetup()" id="ca-setup-btn">⚙️ Initialise CA</button>
+        <div id="ca-setup-res" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--blue-l);">➕</div>Register Clinical Staff</div>
+        <div class="fg"><label class="lbl">Full Name</label><input class="fi" id="ca-reg-name" placeholder="e.g. Dr. Sarah Ahmed"/></div>
+        <div class="fg"><label class="lbl">Role</label>
+          <select class="fi" id="ca-reg-role">
+            <option value="">— Select Role —</option>
+            <option value="LabTechnician">🔬 Lab Technician</option>
+            <option value="Doctor">👨‍⚕️ Doctor</option>
+            <option value="Pharmacist">💊 Pharmacist</option>
+          </select>
+        </div>
+        <div class="fg"><label class="lbl">Login Password (min 4 chars)</label><input class="fi" id="ca-reg-pass" placeholder="Temporary password for this user"/></div>
+        <div style="font-size:10px;color:#888;margin-bottom:8px;">Generates RSA-2048 + ECC P-256 keys, PKCS#12 keystore, X.509 v3 certificate.</div>
+        <button class="btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;" onclick="caRegister()" id="ca-reg-btn">➕ Register Staff Member</button>
+        <div id="ca-reg-res" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><div class="cico" style="background:var(--blue-l);">👥</div>Registered Users</span>
+        <button style="font-size:11px;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;" onclick="caLoadUsers()">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Username</th><th>Role</th><th>Cert Serial</th><th>Registered</th><th>Action</th></tr></thead>
+      <tbody id="ca-users-tb"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Click Refresh to load</td></tr></tbody></table></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--red-l);">🚫</div>Revoke Certificate</div>
+        <div class="fg"><label class="lbl">Username</label><input class="fi" id="ca-rev-name" placeholder="Exact username to revoke"/></div>
+        <div class="fg"><label class="lbl">Reason</label>
+          <select class="fi" id="ca-rev-reason">
+            <option value="unspecified">Unspecified</option>
+            <option value="keyCompromise">Key Compromise</option>
+            <option value="cessationOfOperation">Cessation of Operation</option>
+            <option value="affiliationChanged">Affiliation Changed</option>
+            <option value="superseded">Superseded</option>
+          </select>
+        </div>
+        <button class="btn" style="background:linear-gradient(135deg,var(--red),#e74c3c);color:#fff;" onclick="caRevoke()">🚫 Revoke + Add to CRL</button>
+        <div id="ca-rev-res" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:#E8E8F0;">📟</div>CA Activity Log</div>
+        <div class="log" id="ca-log"><span class="li">CA Admin panel ready...</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAB TECHNICIAN -->
+<div class="panel" id="lab">
+  <div class="card">
+    <div class="ctitle"><div class="cico" style="background:var(--teal-l);">🔬</div>Lab Technician Login</div>
+    <div class="g2">
+      <div class="fg"><label class="lbl">Username</label><input class="fi" id="lab-name" placeholder="Lab technician full name"/></div>
+      <div class="fg"><label class="lbl">Password</label><input class="fi" id="lab-pass" type="password" placeholder="Your password"/></div>
+    </div>
+    <button class="btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;" onclick="login('lab')">🔬 Login as Lab Technician</button>
+    <div id="lab-login-res"></div>
+  </div>
+  <div id="lab-dash" style="display:none;">
+    <div class="g2">
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--teal-l);">📝</div>Sign Genomic Report</div>
+        <div class="fg"><label class="lbl">Patient Name</label><input class="fi" id="lab-pat" placeholder="Patient full name"/></div>
+        <div class="fg"><label class="lbl">Genomic Findings</label><textarea class="fi" id="lab-find" placeholder="e.g. BRCA2 c.5266dupC mutation detected. CYP2D6 poor metabolizer."></textarea></div>
+        <div class="fg">
+          <label class="lbl">Attach DNA Report File (optional — max 10 MB)</label>
+          <input class="fi" id="lab-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt,.csv,.docx,.xlsx" style="padding:7px;"/>
+          <div style="font-size:10px;color:#888;margin-top:4px;">SHA-256 hash of file will be sealed inside the RSA signature — tamper-evident.</div>
+          <div id="lab-file-info" style="margin-top:6px;"></div>
+        </div>
+        <button class="btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;" onclick="labSign()" id="lab-sign-btn">🔏 Sign Genomic Report</button>
+        <div id="lab-res" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:#E8E8F0;">📟</div>Activity Log</div>
+        <div class="log" id="lab-log"><span class="li">Lab portal ready...</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCTOR -->
+<div class="panel" id="doc">
+  <div class="card">
+    <div class="ctitle"><div class="cico" style="background:var(--blue-l);">👨‍⚕️</div>Doctor Login</div>
+    <div class="g2">
+      <div class="fg"><label class="lbl">Username</label><input class="fi" id="doc-name" placeholder="Doctor full name"/></div>
+      <div class="fg"><label class="lbl">Password</label><input class="fi" id="doc-pass" type="password" placeholder="Your password"/></div>
+    </div>
+    <button class="btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;" onclick="login('doc')">👨‍⚕️ Login as Doctor</button>
+    <div id="doc-login-res"></div>
+  </div>
+  <div id="doc-dash" style="display:none;">
+    <div class="card">
+      <div class="ctitle" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><div class="cico" style="background:var(--green-l);">🧬</div>Genomic Reports — Click row to auto-fill path</span>
+        <button style="font-size:11px;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;" onclick="loadReports('doc')">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Report ID</th><th>Patient</th><th>Signed By</th><th>Attachment</th><th>Verify Hash</th></tr></thead>
+      <tbody id="doc-reports-tb"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Click Refresh to load</td></tr></tbody></table></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--blue-l);">📄</div>Sign Prescription</div>
+        <div class="fg"><label class="lbl">Genomic Report Path</label><input class="fi" id="doc-rp" placeholder="← Click a report row above to auto-fill"/></div>
+        <div class="fg"><label class="lbl">Medication</label><input class="fi" id="doc-med" placeholder="e.g. Tamoxifen 20mg"/></div>
+        <div class="fg"><label class="lbl">Dosage</label><input class="fi" id="doc-dos" placeholder="e.g. Once daily for 5 years"/></div>
+        <div class="fg"><label class="lbl">Instructions</label><input class="fi" id="doc-ins" placeholder="e.g. Take with food"/></div>
+        <button class="btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;" onclick="docSign()" id="doc-rx-btn">🔏 Verify Report &amp; Sign Prescription</button>
+        <div id="doc-rx-res" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:#E8E8F0;">📟</div>Activity Log</div>
+        <div class="log" id="doc-log"><span class="li">Doctor portal ready...</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHARMACIST -->
+<div class="panel" id="ph">
+  <div class="card">
+    <div class="ctitle"><div class="cico" style="background:var(--teal-l);">💊</div>Pharmacist Login</div>
+    <div class="g2">
+      <div class="fg"><label class="lbl">Username</label><input class="fi" id="ph-name" placeholder="Pharmacist full name"/></div>
+      <div class="fg"><label class="lbl">Password</label><input class="fi" id="ph-pass" type="password" placeholder="Your password"/></div>
+    </div>
+    <button class="btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;" onclick="login('ph')">💊 Login as Pharmacist</button>
+    <div id="ph-login-res"></div>
+  </div>
+  <div id="ph-dash" style="display:none;">
+    <div class="card">
+      <div class="ctitle" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><div class="cico" style="background:var(--teal-l);">💊</div>Prescriptions — Click row to auto-fill path</span>
+        <button style="font-size:11px;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;" onclick="loadRx()">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Prescription ID</th><th>Patient</th><th>Doctor</th><th>Medication</th><th>Encryption</th></tr></thead>
+      <tbody id="ph-rx-tb"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Click Refresh to load</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="ctitle" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><div class="cico" style="background:var(--green-l);">🧬</div>Genomic Reports &amp; DNA Files</span>
+        <button style="font-size:11px;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;" onclick="loadReports('ph')">Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>Report ID</th><th>Patient</th><th>Signed By</th><th>Attachment</th><th>Verify Hash</th></tr></thead>
+      <tbody id="ph-reports-tb"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Click Refresh to load</td></tr></tbody></table></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:var(--teal-l);">✅</div>Verify &amp; Dispense</div>
+        <div class="fg"><label class="lbl">Prescription File Path</label><input class="fi" id="ph-rxp" placeholder="← Click a prescription row above to auto-fill"/></div>
+        <button class="btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;" onclick="phVerify()" id="ph-verify-btn">✅ Run 6-Step Verification &amp; Dispense</button>
+        <div id="ph-res" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle"><div class="cico" style="background:#E8E8F0;">📟</div>Verification Log</div>
+        <div class="log" id="ph-log"><span class="li">Pharmacy portal ready...</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ATTACK SIMULATOR -->
+<div class="panel" id="atk">
+  <div class="card">
+    <div class="ctitle"><div class="cico" style="background:var(--red-l);">🔴</div>Security Attack Simulator</div>
+    <p style="font-size:12px;color:#666;margin-bottom:16px;">Simulate cryptographic attacks against TrustDNA. All attacks are detected and blocked by the PKI verification logic.</p>
+    <div class="g2">
+      <button class="btn" style="background:#c0392b;color:#fff;margin-bottom:8px;" onclick="runAtk('tamper')">📝 Document Tampering Attack</button>
+      <button class="btn" style="background:#8e44ad;color:#fff;margin-bottom:8px;" onclick="runAtk('forge')">🔑 RSA Signature Forgery</button>
+      <button class="btn" style="background:#e67e22;color:#fff;margin-bottom:8px;" onclick="runAtk('spoof')">🪪 Certificate Spoofing</button>
+      <button class="btn" style="background:#2c3e50;color:#fff;margin-bottom:8px;" onclick="runAtk('mitm')">🕵️ MITM / Replay Attack</button>
+    </div>
+    <div id="atk-res" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- AUDIT LOG -->
+<div class="panel" id="aud">
+  <div class="card">
+    <div class="ctitle" style="justify-content:space-between;">
+      <span style="display:flex;align-items:center;gap:8px;"><div class="cico" style="background:var(--blue-l);">📋</div>Security Audit Log</span>
+      <button style="font-size:11px;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;" onclick="loadAudit()">Refresh</button>
+    </div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>Time</th><th>Event</th><th>User</th><th>Patient</th><th>Document</th><th>Status</th><th>Details</th></tr></thead>
+    <tbody id="aud-tb"><tr><td colspan="7" style="text-align:center;color:#aaa;padding:14px;">Click Refresh to load audit log</td></tr></tbody></table></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ── Globals ──
+let curUser=null,curRole=null;
+const W=window;
+
+// ── Core API ──
+const api=async(url,method='GET',body=null)=>{
+  try{
+    const o={method,headers:{'Content-Type':'application/json'}};
+    if(body)o.body=JSON.stringify(body);
+    const r=await fetch(url,o);
+    return await r.json();
+  }catch(e){return{status:'error',message:'Network: '+e.message,data:null};}
+};
+
+// ── Helpers ──
+const alrt=(t,icon,msg)=>`<div class="al al${t}">${icon} ${msg}</div>`;
+const lg=(id,msg,t='i')=>{
+  const el=document.getElementById(id);if(!el)return;
+  const ts=new Date().toLocaleTimeString();
+  el.innerHTML+=`<div class="l${t}">[${ts}] ${msg}</div>`;
+  el.scrollTop=el.scrollHeight;
+};
+const setB=(id,dis,txt=null)=>{const b=document.getElementById(id);if(!b)return;b.disabled=dis;if(txt)b.textContent=txt;};
+const $=(id)=>document.getElementById(id);
+const val=(id)=>$(id)?.value?.trim()||'';
+
+// ── Navigation ──
+function go(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  $(id)?.classList.add('active');
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  $('sb-'+id)?.classList.add('active');
+}
+
+// ── Health check ──
+async function health(){
+  const r=await api('/api/health');
+  const d=r.data||r;
+  const dbOk=(d.database||'').includes('connected');
+  const caOk=(d.ca||'').includes('initialised');
+  $('db-st').textContent=dbOk?'DB Connected':'DB File Mode';
+  $('ca-st').textContent=caOk?'CA Ready':'CA Not Init';
+  $('db-dot').className='sdot '+(dbOk?'dot-g':'dot-a');
+  $('ca-dot').className='sdot '+(caOk?'dot-g':'dot-a');
+  loadStats();
+}
+
+async function loadStats(){
+  const [u,r,rx]=await Promise.all([api('/api/users'),api('/api/reports'),api('/api/prescriptions')]);
+  if(u.data)$('sv-users').textContent=u.data.length;
+  if(r.data)$('sv-reports').textContent=r.data.length;
+  if(rx.data)$('sv-rx').textContent=rx.data.length;
+  const s=await api('/api/stats');
+  if(s.data)$('sv-rev').textContent=s.data.revoked_certs||0;
+}
+
+// ── CA ADMIN ──
+async function caLogin(){
+  const pass=val('ca-pass');
+  const el=$('ca-login-res');
+  if(!pass){el.innerHTML=alrt('e','❌','Password required.');return;}
+  el.innerHTML=alrt('i','🔄','Authenticating...');
+  const r=await api('/api/ca-login','POST',{password:pass});
+  if(r.status==='success'){
+    el.innerHTML=alrt('s','✅','CA Admin authenticated!');
+    $('ca-dash').style.display='block';
+    curUser='CA Admin';curRole='ca';
+    $('nav-user').textContent='CA Admin';
+    $('logout-btn').style.display='';
+    caLoadUsers();
+  }else{el.innerHTML=alrt('e','❌',r.message);}
+}
+
+async function caSetup(){
+  setB('ca-setup-btn',true,'⏳ Generating...');
+  lg('ca-log','Generating RSA-2048 root key pair...','i');
+  const r=await api('/api/setup','POST',{});
+  setB('ca-setup-btn',false,'⚙️ Initialise CA');
+  if(r.status==='success'){
+    lg('ca-log','X.509 v3 root certificate created ✓','o');
+    lg('ca-log','PKCS#12 keystore saved ✓','o');
+    lg('ca-log','CRL initialised ✓','o');
+    $('ca-setup-res').innerHTML=alrt('s','✅',`<b>CA Initialised!</b><br>Serial: <span class="mono">${r.data?.serial_number||''}</span><br>Valid until: ${(r.data?.not_valid_after||'').slice(0,10)}`);
+    health();
+  }else{
+    lg('ca-log','Error: '+r.message,'e');
+    $('ca-setup-res').innerHTML=alrt('e','❌',r.message);
+  }
+}
+
+async function caRegister(){
+  const name=val('ca-reg-name'),role=val('ca-reg-role'),pass=val('ca-reg-pass');
+  const el=$('ca-reg-res');
+  if(!name||!role){el.innerHTML=alrt('e','❌','Name and role required.');return;}
+  if(!pass||pass.length<4){el.innerHTML=alrt('e','❌','Password must be at least 4 characters.');return;}
+  setB('ca-reg-btn',true,'⏳ Registering...');
+  lg('ca-log',`Generating RSA-2048 + ECC P-256 keys for ${name}...`,'i');
+  const r=await api('/api/register','POST',{username:name,role,password:pass});
+  setB('ca-reg-btn',false,'➕ Register Staff Member');
+  if(r.status==='success'){
+    lg('ca-log',`X.509 v3 cert issued for ${name} ✓`,'o');
+    lg('ca-log','PKCS#12 keystore created ✓','o');
+    el.innerHTML=alrt('s','✅',`<b>${name}</b> registered as ${role}<br>Cert serial: <span class="mono">${r.data?.cert_serial||''}</span><br>Password: <span class="mono">${pass}</span> — share securely.`);
+    $('ca-reg-name').value='';$('ca-reg-role').value='';$('ca-reg-pass').value='';
+    caLoadUsers();loadStats();
+  }else{
+    lg('ca-log','Error: '+r.message,'e');
+    el.innerHTML=alrt('e','❌',r.message);
+  }
+}
+
+async function caLoadUsers(){
+  const r=await api('/api/users');
+  const tb=$('ca-users-tb');
+  if(r.data?.length>0){
+    tb.innerHTML=r.data.map(u=>`<tr>
+      <td><b>${u.username}</b></td><td>${u.role}</td>
+      <td class="mono" style="font-size:10px;">${(u.cert_serial||'').slice(0,18)}...</td>
+      <td>${(u.registered_at||'').slice(0,10)}</td>
+      <td><button style="font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--red);color:var(--red);background:#fff;cursor:pointer;" onclick="$('ca-rev-name').value='${u.username}'">Revoke</button></td>
+    </tr>`).join('');
+  }else{tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No users yet</td></tr>';}
+}
+
+async function caRevoke(){
+  const name=val('ca-rev-name'),reason=val('ca-rev-reason');
+  const el=$('ca-rev-res');
+  if(!name){el.innerHTML=alrt('e','❌','Username required.');return;}
+  const r=await api('/api/revoke','POST',{username:name,reason:reason||'unspecified'});
+  if(r.status==='success'){
+    lg('ca-log',`Certificate revoked: ${name} — ${reason}`,'w');
+    el.innerHTML=alrt('w','🚫',`<b>${name}</b> revoked and added to CRL.`);
+    caLoadUsers();loadStats();
+  }else{el.innerHTML=alrt('e','❌',r.message);}
+}
+
+// ── LOGIN ──
+async function login(role){
+  const nameMap={lab:'lab-name',doc:'doc-name',ph:'ph-name'};
+  const passMap={lab:'lab-pass',doc:'doc-pass',ph:'ph-pass'};
+  const resMap ={lab:'lab-login-res',doc:'doc-login-res',ph:'ph-login-res'};
+  const dashMap={lab:'lab-dash',doc:'doc-dash',ph:'ph-dash'};
+  const username=val(nameMap[role]),password=val(passMap[role]);
+  const el=$(resMap[role]);
+  if(!username||!password){el.innerHTML=alrt('e','❌','Username and password required.');return;}
+  el.innerHTML=alrt('i','🔄','Authenticating via PKI...');
+  const r=await api('/api/authenticate','POST',{username,password});
+  if(r.status==='success'){
+    curUser=username;curRole=role;
+    $('nav-user').textContent=username;
+    $('logout-btn').style.display='';
+    $(dashMap[role]).style.display='block';
+    el.innerHTML=alrt('s','✅',`Welcome, ${username}!`);
+    W[role+'User']=username;
+    if(role==='doc'){lg('doc-log',`Authenticated: ${username} ✓`,'o');loadReports('doc');}
+    if(role==='ph'){lg('ph-log',`Authenticated: ${username} ✓`,'o');loadRx();loadReports('ph');}
+    if(role==='lab')lg('lab-log',`Authenticated: ${username} ✓`,'o');
+  }else{el.innerHTML=alrt('e','❌',r.message);}
+}
+
+function logout(){
+  curUser=null;curRole=null;
+  $('nav-user').textContent='';$('logout-btn').style.display='none';
+  ['ca-dash','lab-dash','doc-dash','ph-dash'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});
+  go('dash');
+}
+
+// ── LAB ──
+async function labSign(){
+  const name=W.labUser||'',pat=val('lab-pat'),findings=val('lab-find');
+  const fileIn=$('lab-file');
+  if(!pat||!findings){$('lab-res').innerHTML=alrt('e','❌','Patient name and findings required.');return;}
+  setB('lab-sign-btn',true,'⏳ Signing...');
+  let att=null;
+  if(fileIn.files?.length>0){
+    const file=fileIn.files[0];
+    lg('lab-log',`Uploading ${file.name}...`,'i');
+    const fd=new FormData();fd.append('file',file);
+    const ur=await fetch('/api/upload-attachment',{method:'POST',body:fd});
+    const uj=await ur.json();
+    if(uj.status==='success'){
+      att={filename:uj.data.filename,stored_name:uj.data.stored_name,sha256:uj.data.sha256};
+      lg('lab-log',`File SHA-256: ${uj.data.sha256.slice(0,16)}... ✓`,'o');
+      $('lab-file-info').innerHTML=alrt('i','📎',`<b>${uj.data.filename}</b> (${(uj.data.size_bytes/1024).toFixed(1)} KB)<br><span class="mono">SHA-256: ${uj.data.sha256}</span>`);
+    }else{
+      $('lab-res').innerHTML=alrt('e','❌','Upload failed: '+uj.message);
+      setB('lab-sign-btn',false,'🔏 Sign Genomic Report');return;
+    }
+  }
+  lg('lab-log','Computing SHA-256 of report content...','i');
+  const r=await api('/api/sign-report','POST',{technician_name:name,patient_name:pat,findings,attachment:att});
+  setB('lab-sign-btn',false,'🔏 Sign Genomic Report');
+  if(r.status==='success'){
+    lg('lab-log','SHA-256 computed ✓','o');
+    lg('lab-log','RSA-PKCS1v15 signature applied ✓','o');
+    lg('lab-log','Nonce generated (replay protection) ✓','o');
+    if(att)lg('lab-log','Attachment hash sealed inside signed report ✓','o');
+    $('lab-res').innerHTML=alrt('s','✅',
+      `<b>Report Signed!</b><br>ID: <span class="mono">${r.data.report_id}</span><br>SHA-256: <span class="mono">${r.data.sha256}</span><br>Nonce: <span class="mono">${r.data.nonce}</span>${att?'<br>📎 Sealed: '+att.filename:''}`);
+    $('lab-pat').value='';$('lab-find').value='';fileIn.value='';$('lab-file-info').innerHTML='';
+    loadStats();
+  }else{
+    lg('lab-log','Error: '+r.message,'e');
+    $('lab-res').innerHTML=alrt('e','❌',r.message);
+  }
+}
+
+// ── REPORTS TABLE ──
+const attCell=att=>{
+  if(!att)return'<span style="color:#bbb;">— none —</span>';
+  return`<a class="att-link" href="/api/attachment/${att.stored_name}" target="_blank">📎 ${att.filename}</a><br><span class="mono" style="font-size:9px;color:#999;">${att.sha256.slice(0,12)}...</span>`;
+};
+
+async function loadReports(ctx){
+  const r=await api('/api/reports');
+  const tb=$(ctx+'-reports-tb');
+  if(!tb)return;
+  if(r.data?.length>0){
+    tb.innerHTML=r.data.map((rep,i)=>{
+      const clickAction=ctx==='doc'?`document.getElementById('doc-rp').value='${rep.report_path.replace(/\\/g,'/')}';lg('doc-log','Report path loaded ✓','o');`:'';
+      return`<tr ${clickAction?`style="cursor:pointer;" onclick="${clickAction}" title="Click to load path"`:''}> 
+        <td class="mono" style="font-size:10px;color:var(--blue2);">${rep.report_id}</td>
+        <td>${rep.patient}</td><td>${rep.signed_by}</td>
+        <td>${attCell(rep.attachment)}</td>
+        <td onclick="event.stopPropagation()">${rep.attachment
+          ?`<button style="font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);cursor:pointer;" onclick="verifyHash('${rep.report_path.replace(/\\/g,'/')}','hv-${ctx}-${i}')">🔍 Verify</button><div id="hv-${ctx}-${i}" style="margin-top:4px;"></div>`
+          :'—'}</td>
+      </tr>`;}).join('');
+  }else{tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No reports yet</td></tr>`;}
+}
+
+async function verifyHash(path,elId){
+  const el=$(elId);el.innerHTML='<span style="font-size:10px;color:#888;">Computing SHA-256...</span>';
+  const r=await api('/api/verify-attachment','POST',{report_path:path});
+  if(r.status==='success'){
+    el.innerHTML=r.data.match
+      ?`<div style="background:var(--green-l);border-radius:6px;padding:5px 8px;font-size:9.5px;border:1px solid #27ae6044;"><b style="color:var(--green);">✅ Hash Match</b><br><span class="mono">Exp: ${r.data.expected_sha256.slice(0,20)}...</span><br><span class="mono">Got: ${r.data.actual_sha256.slice(0,20)}...</span></div>`
+      :`<div style="background:var(--red-l);border-radius:6px;padding:5px 8px;font-size:9.5px;border:1px solid #c0392b44;"><b style="color:var(--red);">❌ TAMPERED!</b><br><span class="mono">Exp: ${r.data.expected_sha256.slice(0,20)}...</span><br><span class="mono">Got: ${r.data.actual_sha256.slice(0,20)}...</span></div>`;
+  }else{el.innerHTML=alrt('e','❌',r.message);}
+}
+
+// ── DOCTOR ──
+async function docSign(){
+  const name=W.docUser||'',rp=val('doc-rp'),med=val('doc-med'),dos=val('doc-dos'),ins=val('doc-ins');
+  const el=$('doc-rx-res');
+  if(!rp){el.innerHTML=alrt('e','❌','Click a report row above to auto-fill the path.');return;}
+  if(!med||!dos){el.innerHTML=alrt('e','❌','Medication and dosage required.');return;}
+  setB('doc-rx-btn',true,'⏳ Verifying & Signing...');
+  lg('doc-log','Verifying genomic report PKI chain...','i');
+  const r=await api('/api/sign-rx','POST',{doctor_name:name,report_path:rp,medication:med,dosage:dos,instructions:ins});
+  setB('doc-rx-btn',false,'🔏 Verify Report & Sign Prescription');
+  if(r.status==='success'){
+    lg('doc-log','Lab cert → CA chain validated ✓','o');
+    lg('doc-log','RSA signature on report verified ✓','o');
+    lg('doc-log','ECDH P-256 key exchange ✓','o');
+    lg('doc-log','AES-256-GCM encryption applied ✓','o');
+    lg('doc-log','RSA-PKCS1v15-SHA256 signature applied ✓','o');
+    el.innerHTML=alrt('s','✅',`<b>Prescription Signed!</b><br>ID: <span class="mono">${r.data.prescription_id}</span><br>Encryption: ${r.data.encryption}<br>Signature: ${r.data.signature}`);
+    $('doc-rp').value='';$('doc-med').value='';$('doc-dos').value='';$('doc-ins').value='';
+    loadStats();
+  }else{
+    lg('doc-log','Error: '+r.message,'e');
+    el.innerHTML=alrt('e','❌',r.message);
+  }
+}
+
+// ── PHARMACIST ──
+async function loadRx(){
+  const r=await api('/api/prescriptions');
+  const tb=$('ph-rx-tb');if(!tb)return;
+  if(r.data?.length>0){
+    tb.innerHTML=r.data.map(rx=>`
+      <tr style="cursor:pointer;" onclick="$('ph-rxp').value='${rx.prescription_path.replace(/\\/g,'/')}';lg('ph-log','Prescription loaded ✓','i');" title="Click to load path">
+        <td class="mono" style="font-size:10px;color:var(--blue2);">${rx.prescription_id}</td>
+        <td>${rx.patient}</td><td>${rx.doctor}</td><td>${rx.medication}</td>
+        <td style="font-size:10px;color:#888;">${rx.encryption||'ECDH+AES-256-GCM'}</td>
+      </tr>`).join('');
+  }else{tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No prescriptions yet</td></tr>';}
+}
+
+async function phVerify(){
+  const name=W.phUser||'',rxp=val('ph-rxp');
+  const el=$('ph-res');
+  if(!rxp){el.innerHTML=alrt('e','❌','Click a prescription row above to auto-fill the path.');return;}
+  setB('ph-verify-btn',true,'⏳ Running verification chain...');
+  el.innerHTML=alrt('i','🔄','Running 6-step cryptographic verification chain...');
+  const det=await api('/api/verify-details','POST',{prescription_path:rxp});
+  if(det.status!=='success'){el.innerHTML=alrt('e','❌',det.message);setB('ph-verify-btn',false,'✅ Run 6-Step Verification & Dispense');return;}
+  const steps=det.data.steps,allOk=det.data.all_passed;
+  const icons={pass:'✅',fail:'❌',warning:'⚠️'};
+  const cls={pass:'sp',fail:'sf',warning:'sw'};
+  const stepsHtml=steps.map(s=>`
+    <div class="step-box ${cls[s.status]}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-weight:600;font-size:12px;">${icons[s.status]} ${s.title}</div>
+      <div style="font-size:11px;margin-bottom:${Object.keys(s.technical||{}).length?'6px':'0'};">${s.detail}</div>
+      ${Object.keys(s.technical||{}).length?`<div class="stech">${Object.entries(s.technical).map(([k,v])=>`<div><span style="color:#888;">${k}:</span> ${v}</div>`).join('')}</div>`:''}
+    </div>`).join('');
+  if(!allOk){
+    el.innerHTML=`<div style="font-weight:700;color:var(--red);margin-bottom:8px;font-size:13px;">❌ Verification Failed — Medication NOT dispensed</div>${stepsHtml}`;
+    lg('ph-log','VERIFICATION FAILED — medication refused','e');
+    setB('ph-verify-btn',false,'✅ Run 6-Step Verification & Dispense');return;
+  }
+  const r=await api('/api/verify','POST',{pharmacist_name:name,prescription_path:rxp});
+  setB('ph-verify-btn',false,'✅ Run 6-Step Verification & Dispense');
+  if(r.status==='success'){
+    ['File loaded','Doctor cert → CA validated','RSA-PKCS1v15-SHA256 verified','AES-256-GCM decrypted','Genomic report chain verified','Timestamp/nonce replay check'].forEach((s,i)=>lg('ph-log',`Step ${i+1}: ${s} ✓`,'o'));
+    lg('ph-log','✅ ALL CHECKS PASSED — MEDICINE DISPENSED 💊','o');
+    el.innerHTML=`<div style="font-weight:700;color:var(--green);margin-bottom:8px;font-size:14px;">💊 ALL CHECKS PASSED — Medicine Dispensed!</div>
+      ${stepsHtml}
+      <div style="margin-top:10px;background:var(--green-l);border-radius:8px;padding:10px 14px;border:1.5px solid #27ae6044;">
+        <b>Patient:</b> ${r.data.patient}<br><b>Medication:</b> ${r.data.medication}<br><b>Verified by:</b> ${r.data.verified_by}
+      </div>`;
+    loadStats();
+  }else{el.innerHTML=alrt('e','❌','<b>Dispense failed:</b> '+r.message);}
+}
+
+// ── ATTACK SIMULATOR ──
+async function runAtk(type){
+  const el=$('atk-res');
+  el.innerHTML=alrt('i','🔄',`Running ${type} attack simulation...`);
+  const r=await api('/api/attack','POST',{attack_type:type});
+  if(r.status==='success'&&r.data){
+    const d=r.data;
+    const steps=(d.steps||[]).map(s=>`
+      <div style="border-left:3px solid #ddd;padding:5px 10px;margin:4px 0;font-size:11px;">
+        <b>${s.action}</b><br>
+        <span style="color:${s.outcome?.includes('BLOCK')||s.outcome?.includes('FAILED')?'var(--red)':s.outcome?.includes('✓')?'var(--green)':'#555'};">${s.outcome||''}</span>
+        ${s.detail?`<br><i style="color:#888;">${s.detail}</i>`:''}
+      </div>`).join('');
+    el.innerHTML=`<div style="background:${d.blocked?'var(--red-l)':'#fff8e1'};border-radius:10px;padding:16px;border:1.5px solid ${d.blocked?'#c0392b44':'#ff980044'};">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px;">${d.blocked?'🛡️ Attack BLOCKED — PKI defence successful':'⚠️ Attack not fully blocked'}</div>
+      <div style="font-size:12px;margin-bottom:6px;"><b>Attack type:</b> ${d.attack_type}</div>
+      <div style="font-size:12px;margin-bottom:6px;"><b>Attacker goal:</b> ${d.attacker_goal}</div>
+      <div style="font-size:12px;margin-bottom:10px;"><b>Blocked by:</b> <span style="color:var(--red);font-weight:600;">${d.blocker}</span></div>
+      <div style="margin-bottom:10px;">${steps}</div>
+      <div style="background:#f8f9fa;border-radius:6px;padding:10px;font-size:11px;line-height:1.7;"><b>Technical conclusion:</b> ${d.conclusion}</div>
+    </div>`;
+  }else{el.innerHTML=alrt('e','❌',r.message||'Attack simulation error');}
+}
+
+// ── AUDIT LOG ──
+async function loadAudit(){
+  const r=await api('/api/audit?limit=50');
+  const tb=$('aud-tb');
+  if(r.status==='success'&&r.data?.length>0){
+    const evtColor=e=>e?.includes('ATTACK')?'var(--red-l)':e?.includes('VERIFY')?'var(--green-l)':'var(--blue-l)';
+    tb.innerHTML=r.data.map(l=>`<tr>
+      <td style="font-size:10px;white-space:nowrap;">${(l.timestamp||'').slice(0,19).replace('T',' ')}</td>
+      <td><span style="background:${evtColor(l.event_type)};padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;">${l.event_type||''}</span></td>
+      <td>${l.username||'—'}</td><td>${l.patient||'—'}</td>
+      <td class="mono" style="font-size:9px;">${(l.document_id||'').slice(0,20)||'—'}</td>
+      <td>${l.success?'<span style="color:var(--green);">✅</span>':'<span style="color:var(--red);">❌</span>'}</td>
+      <td style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${(l.details||'').slice(0,60)}</td>
+    </tr>`).join('');
+  }else{tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#aaa;padding:14px;">${r.message||'No entries yet'}</td></tr>`;}
+}
+
+// ── INIT ──
+health();
+setInterval(health,30000);
+</script>
+</body>
+</html>
